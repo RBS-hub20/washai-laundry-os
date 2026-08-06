@@ -9,7 +9,7 @@ import { FREE_ORDER_LIMIT } from '../../lib/constants'
 import { ProgressBar } from '../ui/Bits'
 
 export const NAV = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/orders', label: 'Orders', icon: ClipboardList },
   { to: '/customers', label: 'Customers', icon: Users },
   { to: '/riders', label: 'Riders', icon: Bike },

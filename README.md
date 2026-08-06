@@ -24,8 +24,24 @@ It's picked up automatically — rounded, with the soft blue glow already applie
 
 ## What's built
 
+## Routes
+
+| Route | Page |
+|---|---|
+| `/` | Public landing page (marketing) |
+| `/login` | Shop login / demo tenant picker |
+| `/dashboard` | Owner dashboard (auth required) |
+| `/orders` `/customers` `/riders` `/inventory` `/pricing` `/settings` | App shell (auth required) |
+| `/admin` | Super Admin (role: admin) |
+| `/track` | Public order tracking, no login |
+
+Funnel: `/` → **Try for FREE** → `/login` → pick a shop → `/dashboard`.
+
+## What's built
+
 | Page | What works |
 |---|---|
+| **Landing** | Sticky white navbar, Tagalog hero with a live-styled orders mock, KPI strip, 3 feature cards, testimonials, pricing (BIZ highlighted yellow), CTA band, footer, Bubbles widget |
 | **Dashboard** | 4 KPI cards, 6-month revenue area chart, order-status donut, FREE-usage banner with upgrade CTA, recent orders, low-stock panel |
 | **Orders** | HTML5 drag-and-drop Kanban across 6 stages. Create/edit/delete modal with customer autocomplete, service multipliers, add-ons, live total, rider assignment. Mobile uses ◀ ▶ stage buttons instead of dragging |
 | **Customers** | Searchable + sortable table with computed order count and lifetime spend; auto-created from orders |

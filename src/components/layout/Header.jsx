@@ -31,7 +31,7 @@ export default function Header() {
   const pickRole = (role) => {
     setRole(role)
     setRoleOpen(false)
-    navigate(role === 'admin' ? '/admin' : '/')
+    navigate(role === 'admin' ? '/admin' : '/dashboard')
   }
 
   return (

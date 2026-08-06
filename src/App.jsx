@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AppProvider, useApp } from './store/AppStore'
 import AppLayout from './components/layout/AppLayout'
+import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Orders from './pages/Orders'
@@ -36,15 +37,21 @@ function Guard({ children }) {
 
 function AdminGuard({ children }) {
   const { session } = useApp()
-  if (session.role !== 'admin') return <Navigate to="/" replace />
+  if (session.role !== 'admin') return <Navigate to="/dashboard" replace />
   return children
 }
 
 function LoginRoute() {
   const { ready, session } = useApp()
   if (!ready) return <Splash />
-  if (session.loggedIn) return <Navigate to="/" replace />
+  if (session.loggedIn) return <Navigate to="/dashboard" replace />
   return <Login />
+}
+
+function LandingRoute() {
+  const { ready } = useApp()
+  if (!ready) return <Splash />
+  return <Landing />
 }
 
 function PublicTrack() {
@@ -59,6 +66,8 @@ function Router() {
 
   return (
     <Routes>
+      {/* public marketing site */}
+      <Route path="/" element={<LandingRoute />} />
       <Route path="/login" element={<LoginRoute />} />
       {/* /track is public when signed out, embedded in the shell when signed in */}
       {!session.loggedIn && <Route path="/track" element={<PublicTrack />} />}
@@ -70,7 +79,7 @@ function Router() {
           </Guard>
         }
       >
-        <Route index element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/customers" element={<Customers />} />
         <Route path="/riders" element={<Riders />} />

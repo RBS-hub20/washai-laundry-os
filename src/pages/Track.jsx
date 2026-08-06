@@ -307,7 +307,7 @@ export default function Track({ standalone = false }) {
               Order Tracking
             </p>
           </div>
-          <Link to="/" className="btn-ghost btn-sm ml-auto">
+          <Link to="/login" className="btn-ghost btn-sm ml-auto">
             <ArrowLeft size={14} /> Shop login
           </Link>
         </div>

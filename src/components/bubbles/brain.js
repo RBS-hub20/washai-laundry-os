@@ -37,7 +37,7 @@ const INTENTS = [
     soft: ['usage', 'used', 'stats', 'revenue', 'sales'],
     reply: (ctx) => ({
       text: `Here's your snapshot for **${ctx.shopName}** 📊\n\n• Plan: **${ctx.plan}**\n• Orders this month: **${ctx.used}${ctx.plan === 'FREE' ? `/${FREE_ORDER_LIMIT}` : ''}**\n• Revenue this month: **${peso(ctx.monthRevenue)}**\n• Orders today: **${ctx.todayCount}**\n• Pending pickups: **${ctx.pendingPickups}**\n• Customers: **${ctx.totalCustomers}**\n• Low-stock items: **${ctx.lowStock}**${ctx.lowStock ? ' ⚠️' : ' ✅'}`,
-      actions: [{ label: 'Open Dashboard', to: '/' }],
+      actions: [{ label: 'Open Dashboard', to: '/dashboard' }],
     }),
   },
   {

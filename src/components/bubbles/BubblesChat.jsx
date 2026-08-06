@@ -48,7 +48,16 @@ function Typing() {
   )
 }
 
-export default function BubblesChat() {
+/**
+ * `offset` shifts the launcher/panel up on mobile to clear the app's bottom nav.
+ * Default matches the dashboard shell; pass "bare" on pages without a bottom nav.
+ */
+export default function BubblesChat({ offset = 'shell' }) {
+  const bare = offset === 'bare'
+  const launcherPos = bare ? 'bottom-6' : 'bottom-[86px] lg:bottom-6'
+  const panelPos = bare
+    ? 'bottom-[96px] max-h-[calc(100vh-140px)]'
+    : 'bottom-[160px] lg:bottom-[96px] max-h-[calc(100vh-220px)] lg:max-h-[calc(100vh-140px)]'
   const app = useApp()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -125,9 +134,9 @@ export default function BubblesChat() {
         onClick={() => setOpen((v) => !v)}
         whileHover={{ scale: 1.06 }}
         whileTap={{ scale: 0.94 }}
-        className="fixed right-4 sm:right-6 bottom-[86px] lg:bottom-6 z-[60] w-16 h-16 rounded-full
+        className={`fixed right-4 sm:right-6 ${launcherPos} z-[60] w-16 h-16 rounded-full
                    bg-gradient-to-br from-brand-500 to-brand-700 shadow-glow grid place-items-center
-                   ring-4 ring-white"
+                   ring-4 ring-white`}
         aria-label="Chat with Bubbles"
       >
         <AnimatePresence mode="wait">
@@ -165,9 +174,9 @@ export default function BubblesChat() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ type: 'spring', damping: 26, stiffness: 300 }}
-            className="fixed z-[59] right-3 sm:right-6 bottom-[160px] lg:bottom-[96px]
-                       w-[calc(100vw-1.5rem)] sm:w-[400px] h-[540px] max-h-[calc(100vh-220px)] lg:max-h-[calc(100vh-140px)]
-                       bg-canvas rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
+            className={`fixed z-[59] right-3 sm:right-6 ${panelPos}
+                       w-[calc(100vw-1.5rem)] sm:w-[400px] h-[540px]
+                       bg-canvas rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden`}
           >
             {/* header */}
             <div className="bg-gradient-to-br from-brand-500 to-brand-700 px-4 py-3.5 flex items-center gap-3 shrink-0">
