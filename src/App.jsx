@@ -44,7 +44,10 @@ function AdminGuard({ children }) {
 function LoginRoute() {
   const { ready, session } = useApp()
   if (!ready) return <Splash />
-  if (session.loggedIn) return <Navigate to="/dashboard" replace />
+  // Super admins land on /admin, shop owners on /dashboard.
+  if (session.loggedIn) {
+    return <Navigate to={session.role === 'admin' ? '/admin' : '/dashboard'} replace />
+  }
   return <Login />
 }
 

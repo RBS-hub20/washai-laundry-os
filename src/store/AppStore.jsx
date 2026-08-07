@@ -23,7 +23,7 @@ export function AppProvider({ children }) {
   const [riders, setRiders] = useState([])
   const [inventory, setInventory] = useState([])
   const [payments, setPayments] = useState([])
-  const [session, setSession] = useState({ shopId: 'shop_demo', role: 'owner', loggedIn: false })
+  const [session, setSession] = useState({ shopId: null, role: 'owner', loggedIn: false })
   const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [toasts, setToasts] = useState([])
 
@@ -35,7 +35,7 @@ export function AppProvider({ children }) {
     setRiders(load(KEYS.riders, []))
     setInventory(load(KEYS.inventory, []))
     setPayments(load(KEYS.payments, []))
-    setSession(load(KEYS.session, { shopId: 'shop_demo', role: 'owner', loggedIn: false }))
+    setSession(load(KEYS.session, { shopId: null, role: 'owner', loggedIn: false }))
     setReady(true)
   }, [])
 
@@ -347,14 +347,48 @@ export function AppProvider({ children }) {
   )
 
   /* --------------------------------- auth -------------------------------- */
-  const login = useCallback(
-    (shopId, role = 'owner') => {
-      setSession({ shopId, role, loggedIn: true })
-      toast('Welcome back to WashAI! 🫧')
+
+  /**
+   * Sign in from a real D1 record. The shops row returned by the API is
+   * mirrored into the local store so the dashboard shell has a tenant to
+   * render; super admins have no shop and go straight to /admin.
+   */
+  const signInWithD1 = useCallback(
+    (user, shopRow) => {
+      const role = user.role === 'super_admin' ? 'admin' : 'owner'
+
+      if (shopRow?.id) {
+        const mapped = {
+          id: shopRow.id,
+          name: shopRow.name,
+          owner: user.email.split('@')[0],
+          email: user.email,
+          phone: shopRow.phone || '',
+          address: shopRow.address || '',
+          plan: shopRow.plan || 'FREE',
+          pricePerKg: shopRow.price_per_kg ?? 45,
+          branches: 1,
+          createdAt: shopRow.created_at || new Date().toISOString(),
+        }
+        setShops((ss) => {
+          const i = ss.findIndex((s) => s.id === mapped.id)
+          if (i === -1) return [...ss, mapped]
+          const next = [...ss]
+          next[i] = { ...next[i], ...mapped }
+          return next
+        })
+      }
+
+      setSession({ shopId: shopRow?.id ?? null, role, loggedIn: true })
+      toast(role === 'admin' ? 'Signed in as Super Admin' : 'Welcome back to WashAI! 🫧')
     },
     [toast]
   )
-  const logout = useCallback(() => setSession((s) => ({ ...s, loggedIn: false })), [])
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('washai_identity')
+    setSession({ shopId: null, role: 'owner', loggedIn: false })
+  }, [])
   const setRole = useCallback((role) => setSession((s) => ({ ...s, role })), [])
   const switchShop = useCallback((shopId) => setSession((s) => ({ ...s, shopId })), [])
 
@@ -417,7 +451,7 @@ export function AppProvider({ children }) {
     addItem, updateItem, adjustStock, deleteItem,
     updateShop, setPlan,
     submitPayment, approvePayment, rejectPayment,
-    login, logout, setRole, switchShop, hardReset,
+    signInWithD1, logout, setRole, switchShop, hardReset,
     // derived
     stats, revenueSeries,
     // ui

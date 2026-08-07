@@ -24,6 +24,70 @@ It's picked up automatically — rounded, with the soft blue glow already applie
 
 ## What's built
 
+## Backend — Cloudflare Worker + D1
+
+The Worker (`worker/index.js`) serves the built SPA **and** the API. D1 binding is `DB` (`washai-db`).
+
+### Setup
+
+```bash
+npx wrangler d1 execute washai-db --local --file=./schema.sql
+npx wrangler d1 execute washai-db --local --file=./seed.sql
+```
+
+Swap `--local` for `--remote` to apply the same to production D1 (requires `npx wrangler login`).
+
+### Local dev
+
+The Worker and the API run together on one origin:
+
+```bash
+npm run build && npx wrangler dev
+```
+
+Or run Vite's HMR server with the API proxied to `wrangler dev` (`vite.config.js` proxies `/api` → `127.0.0.1:8787`):
+
+```bash
+npx wrangler dev
+```
+
+```bash
+npm run dev
+```
+
+### Endpoints
+
+| Method | Route | Body / Auth | Returns |
+|---|---|---|---|
+| `POST` | `/api/auth/signup` | `{email, password, shopName}` | Creates a `shops` + `users` row, returns both |
+| `POST` | `/api/auth/login` | `{email, password}` | `{user: {id,email,role,shop_id}, shop}` |
+| `GET` | `/api/admin/shops` | header `x-user-email` of a `super_admin` | `{shops: [...]}` |
+| `GET` | `/api/health` | — | Liveness check |
+
+Passwords are hashed with **SHA-256** and compared in constant time. All queries use bound prepared statements.
+
+> **Before real users:** SHA-256 is unsalted and fast — fine for this milestone, not for production credentials. Move to PBKDF2 (`crypto.subtle.deriveBits`, available in Workers) and replace the `x-user-email` admin check with a signed session token.
+
+### Accounts
+
+There is **no demo login**. Every account lives in the D1 `users` table.
+
+| Account | Credentials | Lands on |
+|---|---|---|
+| Super admin (seeded) | `renzsom2022@gmail.com` / `WashAI2024!` | `/admin` |
+| Shop owner | created via **Create one** on `/login` | `/dashboard` |
+
+Routing is driven by the `role` column returned by `/api/auth/login` — `super_admin` → `/admin`, everything else → `/dashboard`. The role switcher in the header only appears for a real `super_admin`.
+
+`seed.sql` stores the **SHA-256 digest** of the password, not the plaintext — the login endpoint hashes what you type and compares digests, so a plaintext row can never match. **Change this password before the site is public.**
+
+### Where data lives
+
+- **D1** — `users`, `shops` (auth, tenants, plans)
+- **localStorage, per browser** — orders, customers, riders, inventory, GCash proofs
+
+The second group has no API endpoints yet, so a new shop starts empty and its operational data does not follow the user across devices. Moving it to D1 needs `orders`-table endpoints plus `customers` / `riders` / `inventory` tables.
+
 ## Routes
 
 | Route | Page |

@@ -20,7 +20,9 @@ export const NAV = [
 ]
 
 export default function Sidebar() {
-  const { session, isFree, monthOrderCount, setUpgradeOpen } = useApp()
+  const { session, shop, isFree, monthOrderCount, setUpgradeOpen } = useApp()
+  // A super admin has no tenant, so neither plan card applies.
+  const showPlanCard = !!shop
 
   return (
     <aside className="hidden lg:flex w-[264px] shrink-0 flex-col bg-white border-r border-slate-100 h-screen sticky top-0">
@@ -72,7 +74,7 @@ export default function Sidebar() {
       </nav>
 
       {/* usage / upgrade */}
-      {isFree ? (
+      {!showPlanCard ? null : isFree ? (
         <div className="m-3 p-4 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-lift">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles size={15} className="text-accent" />

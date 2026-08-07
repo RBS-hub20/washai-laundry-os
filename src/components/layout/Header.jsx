@@ -6,11 +6,13 @@ import { PlanBadge } from '../ui/Bits'
 import { LogoMark, LogoWordmark } from '../brand/Logo'
 import { NAV } from './Sidebar'
 import { NavLink } from 'react-router-dom'
+import { getIdentity } from '../../api'
 
 export default function Header() {
-  const { shop, session, setRole, logout, shops, switchShop, isFree, setUpgradeOpen } = useApp()
+  const { shop, session, setRole, logout, isFree, setUpgradeOpen } = useApp()
+  const identity = getIdentity()
+  const isSuperAdmin = identity?.role === 'super_admin'
   const [roleOpen, setRoleOpen] = useState(false)
-  const [shopOpen, setShopOpen] = useState(false)
   const [drawer, setDrawer] = useState(false)
   const navigate = useNavigate()
   const loc = useLocation()
@@ -20,7 +22,6 @@ export default function Header() {
   useEffect(() => {
     const onClick = (e) => {
       if (roleRef.current && !roleRef.current.contains(e.target)) setRoleOpen(false)
-      if (shopRef.current && !shopRef.current.contains(e.target)) setShopOpen(false)
     }
     document.addEventListener('mousedown', onClick)
     return () => document.removeEventListener('mousedown', onClick)
@@ -51,46 +52,19 @@ export default function Header() {
             <LogoWordmark size="sm" />
           </div>
 
-          {/* shop switcher */}
-          <div ref={shopRef} className="relative hidden lg:block">
-            <button
-              onClick={() => setShopOpen((v) => !v)}
-              className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-slate-50 transition"
-            >
-              <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 grid place-items-center">
-                <Store size={16} />
-              </div>
-              <div className="text-left leading-tight">
-                <p className="text-sm font-bold text-ink">{shop?.name}</p>
-                <p className="text-[11px] text-slate-400">{shop?.address}</p>
-              </div>
-              <ChevronDown size={15} className="text-slate-400" />
-            </button>
-            {shopOpen && (
-              <div className="absolute left-0 mt-2 w-72 card p-1.5 shadow-lift z-50">
-                <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Switch shop (multi-tenant)
-                </p>
-                {shops.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => {
-                      switchShop(s.id)
-                      setShopOpen(false)
-                    }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition ${
-                      s.id === session.shopId ? 'bg-brand-50' : 'hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-ink truncate">{s.name}</p>
-                      <p className="text-[11px] text-slate-400 truncate">{s.owner}</p>
-                    </div>
-                    <PlanBadge plan={s.plan} />
-                  </button>
-                ))}
-              </div>
-            )}
+          {/* current tenant */}
+          <div ref={shopRef} className="relative hidden lg:flex items-center gap-2.5 px-3 py-2">
+            <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 grid place-items-center shrink-0">
+              {session.role === 'admin' && !shop ? <ShieldCheck size={16} /> : <Store size={16} />}
+            </div>
+            <div className="text-left leading-tight min-w-0">
+              <p className="text-sm font-bold text-ink truncate">
+                {shop?.name || 'WashAI Platform'}
+              </p>
+              <p className="text-[11px] text-slate-400 truncate">
+                {shop?.address || shop?.email || 'Super admin console'}
+              </p>
+            </div>
           </div>
 
           <div className="flex-1" />
@@ -104,7 +78,7 @@ export default function Header() {
             </button>
           )}
 
-          <PlanBadge plan={shop?.plan || 'FREE'} />
+          {shop && <PlanBadge plan={shop.plan || 'FREE'} />}
 
           {/* role switcher */}
           <div ref={roleRef} className="relative">
@@ -125,29 +99,45 @@ export default function Header() {
               <ChevronDown size={14} className="text-slate-400" />
             </button>
             {roleOpen && (
-              <div className="absolute right-0 mt-2 w-56 card p-1.5 shadow-lift z-50">
-                <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  View as
-                </p>
-                <button
-                  onClick={() => pickRole('owner')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm font-medium ${
-                    session.role === 'owner' ? 'bg-brand-50 text-brand-700' : 'hover:bg-slate-50'
-                  }`}
-                >
-                  <User size={16} /> Shop Owner
-                </button>
-                <button
-                  onClick={() => pickRole('admin')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm font-medium ${
-                    session.role === 'admin' ? 'bg-violet-50 text-violet-700' : 'hover:bg-slate-50'
-                  }`}
-                >
-                  <ShieldCheck size={16} /> Super Admin
-                </button>
+              <div className="absolute right-0 mt-2 w-60 card p-1.5 shadow-lift z-50">
+                <div className="px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                    Signed in as
+                  </p>
+                  <p className="text-xs font-semibold text-ink truncate mt-0.5">
+                    {identity?.email || 'Unknown account'}
+                  </p>
+                </div>
+
+                {/* Only a real super_admin in D1 can switch views. */}
+                {isSuperAdmin && (
+                  <>
+                    <div className="h-px bg-slate-100 my-1" />
+                    <button
+                      onClick={() => pickRole('owner')}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm font-medium ${
+                        session.role === 'owner' ? 'bg-brand-50 text-brand-700' : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <User size={16} /> Shop Owner view
+                    </button>
+                    <button
+                      onClick={() => pickRole('admin')}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm font-medium ${
+                        session.role === 'admin' ? 'bg-violet-50 text-violet-700' : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <ShieldCheck size={16} /> Super Admin view
+                    </button>
+                  </>
+                )}
+
                 <div className="h-px bg-slate-100 my-1.5" />
                 <button
-                  onClick={logout}
+                  onClick={() => {
+                    logout()
+                    navigate('/login', { replace: true })
+                  }}
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-red-600 hover:bg-red-50"
                 >
                   <LogOut size={16} /> Log out

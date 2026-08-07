@@ -153,29 +153,9 @@ export default function Track({ standalone = false }) {
           </button>
         </form>
 
-        <div className="flex flex-wrap gap-1.5 justify-center mt-4">
-          <span className="text-[11px] text-slate-400 font-semibold">Try:</span>
-          {['0917 231 8890', '0928 774 1120', '0919 550 3311'].map((p) => (
-            <button
-              key={p}
-              onClick={() => {
-                setPhone(p)
-                setTimeout(() => {
-                  const digits = p.replace(/\D/g, '')
-                  setResults(
-                    orders
-                      .filter((o) => o.phone.replace(/\D/g, '').includes(digits))
-                      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                  )
-                  setSearched(true)
-                }, 0)
-              }}
-              className="text-[11px] font-bold px-2 py-1 rounded-md bg-brand-50 text-brand-600 hover:bg-brand-100 transition tabular-nums"
-            >
-              {p}
-            </button>
-          ))}
-        </div>
+        <p className="text-[11px] text-slate-400 font-semibold mt-4">
+          Use the same number you gave the shop when you dropped off your laundry.
+        </p>
       </div>
 
       {/* results */}
